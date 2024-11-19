@@ -153,7 +153,6 @@ Python підтримує об'єктно-орієнтований підхід,
 *VS Code* — це популярне середовище розробки (IDE), яке підтримує Python завдяки спеціальному розширенню. Воно має зручний інтерфейс, інтегровану підтримку Git, налагоджувач, а також дозволяє працювати з різноманітними мовами програмування. Встановивши розширення для Python, VS Code пропонує автоматичне доповнення коду, виведення помилок і підтримку віртуальних середовищ.\
 Python Package:
   - *rich* — потужна бібліотека для виведення кольорових та стилізованих текстів у термінал. Вона підтримує виведення таблиць, прогрес-барів, візуальних компонентів, що робить взаємодію з користувачем значно зручнішою та інтуїтивно зрозумілою.
-#pagebreak()
 #heading("Опис прийнятих проектних рішень")
 #align(center, heading(level: 2, "Концептуальна модель проблемної галузі"))
 
@@ -171,7 +170,7 @@ Python Package:
   - Контекст (Context) - клас вибирає за указаним файлом обирає стратегію (reader) для успішої і коректної десерилізації
   - Стратегія (*AbstractReader*) - це базовий інтерфейс який представляє методи для стратегій.
   - Конкретні стратегії - *`JSONReader`*, *`CSVReader`*, *`XMLReader`* і тд. Кожен з них імплементує *`AbstractReader`* для десерилізації данних.
-#figure(image("photo/class_diagram_strategy.png", width: 100%), caption: [Концептуальна модель])
+#figure(image("photo/class_diagram_strategy.png", width: 100%), caption: [Концептуальна модель])<concept_model>
 #parbreak()
 #align(center, heading(level: 2, "Логічна модель проблемної галузі"))
 
@@ -211,8 +210,6 @@ Python Package:
    #image("photo/class_diagram_2.png", width: 100%)
 ] <diagram_class_project>
 
-
-#parbreak()
 #align(center, heading(level: 2, "Фізична модель проблемної галузі"))
 
 #heading(level: 3, "Ієрархія проекту")
@@ -280,10 +277,10 @@ pip freeze > require/requirements.txt
 1. Назначення файла який буде десерилізовано
 2. Клас Context підбирає reader для цього формату файла який було вказано
 3. Передає віддесерилізовані дані в клас Zomboid який виведе на екран таблицю об’єктів
-#figure(image("photo/data_models.png", width: 80%))
+#figure(image("photo/result_models.jpg", width: 80%))<result_models>
 
 #pagebreak()
-#heading(numbering: none, "ВИСНОВОК")
+#heading("ВИСНОВОК")
 У цій курсовій роботі було детально розглянуто та проаналізовано патерн проектування "Стратегія", який є одним із ключових методів у сучасній розробці програмного забезпечення. Застосування цього патерну допомагає розробникам створювати більш гнучкі та адаптивні програми, що легко розширюються та модифікуються.
 
 Основна перевага патерну Strategy полягає у можливості динамічно змінювати поведінку об'єктів у час виконання програми. Це досягається завдяки принципу композиції, що дозволяє обирати потрібну поведінку на основі поточних умов або вимог, не змінюючи код об’єктів, що її використовують. Такий підхід дає змогу значно зменшити залежності між компонентами програми, зберігаючи їхню автономність. Замість традиційного наслідування патерн Strategy передбачає інтеграцію конкретних стратегій через інтерфейси, що дозволяє обирати різні алгоритми або логіку залежно від умов або вимог проекту.
@@ -298,4 +295,279 @@ pip freeze > require/requirements.txt
 )
 - Refactoring guru: #link("https://refactoring.guru/design-patterns/strategy")
 - Source code GitHub: #link("https://github.com/JordanOleg/course_work")
-- rich: #link("https://github.com/Textualize/rich/tree/master")
+- Rich: #link("https://github.com/Textualize/rich/tree/master")
+
+#heading("Додаток А")
+#image("photo/photo_presentations/present_1.jpg")
+#image("photo/photo_presentations/present_2.jpg")
+#image("photo/photo_presentations/present_3.jpg")
+#image("photo/photo_presentations/present_4.jpg")
+#image("photo/photo_presentations/present_5.jpg")
+#image("photo/photo_presentations/present_6.jpg")
+#image("photo/photo_presentations/present_7.jpg")
+#image("photo/photo_presentations/present_8.jpg")
+#image("photo/photo_presentations/present_9.jpg")
+#image("photo/photo_presentations/present_10.jpg")
+
+#pagebreak()
+#heading("Додаток Б")
+```python
+import csv
+from pathlib import Path
+from src.model import DataModel
+from src.io.file_reader import AbstractReader
+
+
+class CSVReader(AbstractReader):
+    def __init__(self, path: Path):
+        self.path: Path = path
+        self.dic_header: dict[str, int] = {}
+    
+    def read(self) -> list[DataModel]:
+        result: list[DataModel] = []
+        with open(self.path) as csv_file:
+            spam_reader = csv.reader(csv_file)
+            self.dic_header = {}
+            head = next(spam_reader)
+            i = 0
+            for item in head:
+                self.dic_header[item] = i
+                i+=1
+            for row in spam_reader:
+                data = DataModel(id=int(row[self.dic_header["id"]]), name=row[self.dic_header["name"]],
+                                 type_object=row[self.dic_header["type_object"]], condition=row[self.dic_header["condition"]], 
+                                 amount=int(row[self.dic_header["amount"]]))
+                result.append(data)
+            return result
+        
+    def get_header(self) -> dict[str, int]:
+        return self.dic_header
+
+from abc import ABC, abstractmethod
+from pathlib import Path
+from src.model import DataModel
+
+class AbstractReader(ABC):
+
+    @abstractmethod
+    def read(self) -> list[DataModel]:
+        pass
+    
+    @abstractmethod
+    def get_header(self) -> dict[str, int]:
+        pass
+
+from pathlib import Path
+import json
+from src.io.file_reader import AbstractReader
+from src.model import DataModel
+
+
+class JSONReader(AbstractReader):
+    def __init__(self, path: Path):
+        self.path = path
+        self.dic_header: dict[str, int] = {}
+        
+    def read(self) -> list[DataModel]:
+        with open(self.path) as file:
+            items_data: list[dict[str, object]] = json.load(file)
+            if not items_data:
+                return []
+
+            dic_data: dict[str, object] = items_data[0]
+            self.dic_header = {key: idx for idx, key in enumerate(dic_data.keys())}
+
+            items = [
+                DataModel(
+                    id=int(item['id']),
+                    name=item['name'],
+                    type_object=item['type_object'],
+                    condition=item['condition'],
+                    amount=int(item['amount'])
+                ) for item in items_data
+            ]
+        return items
+    
+    def get_header(self) -> dict[str, int]:
+        return self.dic_header
+
+from xml.etree import ElementTree
+from pathlib import Path
+from src.io.file_reader import AbstractReader
+from src.model import DataModel
+
+
+class XMLReader(AbstractReader):
+    def __init__(self, path: Path, root: str = "Item"):
+        self.path: Path = path
+        self.dic_header: dict[str, int] = {}
+        self.tree_root: str = root
+    
+    def read(self) -> list[DataModel]:
+        items = []
+        tree = ElementTree.parse(self.path)
+        root = tree.getroot()
+        first_item = root.find(self.tree_root)
+        if first_item is not None:
+            keys = [child.tag for child in first_item]
+            self.dic_header = dict(zip(keys, range(len(keys))))
+
+        for item in root.findall(self.tree_root):
+            item_data = {child.tag: child.text for child in item}
+            items.append(DataModel(id=int(item_data["id"]), name=item_data["name"], 
+                                   condition=item_data["condition"], type_object=item_data["type_object"], 
+                                   amount=int(item_data["amount"])))
+        return items
+    
+    def get_header(self) -> dict[str, int]:
+        return self.dic_header
+
+from pathlib import Path
+from typing import List, Iterable
+from src.printer_model import PrinterModel
+from src.io.csv_reader import CSVReader
+from src.io.file_reader import AbstractReader
+from src.model import DataModel, default_dict_models
+
+
+class Zomboid:
+    def __init__(self, source_model: list[DataModel], dic_model: dict[str, int] = None):
+        self.data_model: list[DataModel] = source_model
+        self.dic_model: dict[str, int] = dic_model if dic_model else default_dict_models
+        
+    def print_models(self):
+        reader = PrinterModel(
+            self.data_model, 
+            self.dic_model, 
+            )
+        reader.print()
+
+from pathlib import Path
+from src.model import DataModel
+from src.io.file_reader import AbstractReader
+from src.io.csv_reader import CSVReader
+from src.io.json_reader import JSONReader
+from src.io.xml_reader import XMLReader
+
+
+class Context:
+    def __init__(self, path: Path):
+        self.path = path
+        self._reader = None
+        
+    def get_reader(self) -> AbstractReader:
+        file_extension = self.path.suffix.lower()
+        
+        if file_extension == '.xml':
+            self._reader = XMLReader(self.path)
+            return self._reader
+        elif file_extension == '.csv':
+            self._reader = CSVReader(self.path)
+            return self._reader
+        elif file_extension == '.json':
+            self._reader = JSONReader(self.path)
+            return self._reader
+        else:
+            raise ValueError("Unsupported file format")
+        
+    def get_model(self) -> list[DataModel]:
+        if self._reader:
+            result = self._reader.read()
+        else:
+            self._reader = self.get_reader()
+            result = self._reader.read()
+        return result
+    
+    def get_header(self) -> dict[str, int]:
+        if self._reader:
+            result = self._reader.get_header()
+        else:
+            self._reader = self.get_reader()
+            result = self._reader.get_header()
+        return result
+
+from dataclasses import dataclass
+
+
+@dataclass
+class DataModel:
+    id: str
+    name: str
+    type_object: str
+    condition: str
+    amount: str
+
+default_dict_models: dict[str, int] = {
+    "id" : 0,
+    "name" : 1,
+    "type_object" : 2,
+    "condition" : 3,
+    "amount" : 4
+}
+
+from src.model import DataModel
+
+
+class Paginator:
+    def __init__(self, source_models: list[DataModel], skip: int, take: int):
+        self.data_models: list[DataModel] = source_models
+        self.skip: int = skip
+        self.take: int = take
+    
+    def get_models(self) -> list[DataModel]:
+        list_models = []
+        skip_model = self.skip
+        take_model = self.take
+        for item in self.data_models:
+            if skip_model != 0:
+                skip_model -= 1
+                continue
+            if take_model != 0: 
+                take_model -= 1
+                list_models.append(item)
+        return list_models
+
+from rich.console import Console
+from rich.table import Table
+from src.model import DataModel, default_dict_models
+
+
+class PrinterModel:
+    def __init__(self, data_model: list[DataModel], heads_table: dict[str, int] = None):
+        self.data_model: list[DataModel] = data_model
+        self.heads_table: dict[str, int] = heads_table if heads_table else default_dict_models
+    
+    def print(self) -> None: # rich
+        table = Table(title="Data Models")
+        row_data: list[list[str]] = []
+        
+        list_head_models: list[str] = self.heads_table.keys()
+        for head in list_head_models:
+            table.add_column(head, justify="center", style="green", no_wrap=True)
+        for model in self.data_model:
+            list_attribute_current_model = []
+            for head in list_head_models:
+                list_attribute_current_model.append(str(getattr(model, head, "")))
+            row_data.append(list_attribute_current_model)
+        for row in row_data:
+            table.add_row(*row, style="yellow")
+
+        console = Console()
+        console.print(table)
+
+from pathlib import Path
+from src import Zomboid
+from src.context import Context
+from src.paginator import Paginator
+
+if __name__ == "__main__":
+    paths = Path("zomboid/.data/model.csv")
+    context = Context(paths)
+    reader = context.get_reader()
+    data_model = reader.read()
+    separator = Paginator(source_models=data_model, skip=0, take=len(data_model))
+    models = separator.get_models()
+    reader = Zomboid(models)
+    reader.print_models()
+
+```
