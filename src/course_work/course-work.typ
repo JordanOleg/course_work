@@ -116,7 +116,7 @@
           `_________` #commission_head_name
         ]
          #block(above: 1em)[
-          протокол № `___` від `_________`
+          протокол № #text(underline("2")) від #text(underline("19.09.2024"))
         ]
       ]
     ]
